@@ -1,7 +1,11 @@
-from flask import Flask, render_template, Response, g
+from flask import Flask, render_template, Response, request, g, jsonify
+from werkzeug.utils import secure_filename
 import cv2
+import os
+
 app = Flask(__name__, template_folder='./templates', static_folder='./templates/static')
 
+ALLOWED_EXTENSIONS = {'mp4'} #파일 업로드가 가능한 확장자 목록
 
 @app.route('/')
 def hello_world():
@@ -10,6 +14,32 @@ def hello_world():
 @app.route('/main')
 def main():
     return render_template('index.html')
+
+@app.route('/files', methods=['POST'])
+def file_upload():
+    os.makedirs('./templates/static/video', exist_ok=True) #디렉토리가 없을 경우 생성
+
+    f = request.files['file']
+
+    if f and allowed_file(f.filename):
+        f.save('./templates/static/video/' + secure_filename(f.filename))
+        return '파일이 저장되었습니다.'
+    else:
+        return '동영상만 업로드 가능합니다.'
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/files', methods=['GET'])
+def get_video_list():
+    path = './templates/static/video'
+    file_list = os.listdir(path)
+    return jsonify(file_list)
+
+@app.route('/files/<string:file>', methods=['GET'])
+def get_video(file):
+    return render_template('video.html')
 
 @app.route('/video_feed')
 def video_feed():

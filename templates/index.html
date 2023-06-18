@@ -4,21 +4,6 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <title>Blackice Detection</title>
-
-        <script>
-            window.onload = () => {
-                const outputElement = document.getElementById('output');
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', '/check', true);
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState == XMLHttpRequest.LOADING) {
-                        outputElement.innerText = xhr.responseText;
-                    }
-                };
-                xhr.send();
-            };
-        </script>
-
         <style>
             #modal.modal-overlay {
                 width: 100%;
@@ -80,9 +65,25 @@
     </head>
     <body>
         <h1>BlackIce Detection</h1>
-        <img src="{{url_for('video_feed')}}">
-        <!-- <pre id="output"></pre> -->
-        <button id="btn-modal">버튼</button>
+
+        <table id="file-table">
+            <thead>
+                <tr>
+                    <th>동영상 목록</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <!-- 실시간 스트리밍 -->
+        <!-- <img src="{{url_for('video_feed')}}"> -->
+        <button id="btn-modal">모달 띄우기</button>
+
+        <form action = "http://localhost:5001/files" method = "POST"enctype = "multipart/form-data">
+            <input type = "file" name = "file" />
+            <input type = "submit"/>
+        </form>
 
         <div id="modal" class="modal-overlay">
             <div class="modal-window">
@@ -115,36 +116,57 @@
                 if (evTarget.classList.contains("modal-overlay")) {
                     modal.style.display = "none"
                     }
+                })
             })
-        })
 
-        </script>
-    </body>
-</html> 
+            // 서버에서 파일 목록을 가져오는 함수
+            async function fetchFiles() {
+                const response = await fetch('/files');
+                const files = await response.json();
+                return files;
+            }
 
-<!-- <!DOCTYPE html>
-<html lang="ko">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>Real-Time Streaming</title>
-        <script>
-            window.onload = () => {
-                const outputElement = document.getElementById('output');
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', '/test', true);
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState == XMLHttpRequest.LOADING) {
-                        outputElement.innerText = xhr.responseText;
+            // 웹 페이지에 파일 목록을 테이블 형식으로 렌더링하는 함수
+            function buildTable(files) {
+                const tableBody = document.querySelector('#file-table tbody');
+
+                files.forEach(file => {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    const btnCell = document.createElement('td');
+                    
+                    const btn = document.createElement('button');
+                    btn.textContent = "선택"
+                    btn.addEventListener('click', () => {
+                        handleButtonClick(file);
+                    })
+
+                    btnCell.appendChild(btn);
+
+                    cell.textContent = file;
+                    row.appendChild(cell);
+                    row.appendChild(btnCell);
+                    tableBody.appendChild(row);
+                });
+            }
+
+            function handleButtonClick(file) {
+                fetch(`/files/${file}`).then(response => {
+                    if (response.ok) {
+                        // API 호출 성공 시 새 페이지로 이동
+                        window.location.href = `/files/${file}`;
+                    } else {
+                        alert('동영상 선택에 실패했습니다.');
                     }
-                };
-                xhr.send();
-            };
+                });
+            }
+
+            // 페이지 로드 시 실행
+            document.addEventListener('DOMContentLoaded', async () => {
+                const files = await fetchFiles();
+                buildTable(files);
+            });
+
         </script>
-    </head>
-    <body>
-        <h1>Real-Time Streaming</h1>        
-        <img src="{{url_for('video_feed')}}">
-        <pre id="output"></pre>
     </body>
-</html>  -->
+</html>
