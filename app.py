@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, request, g, jsonify
+from flask import Flask, render_template, Response, request, g, jsonify, send_file
 from werkzeug.utils import secure_filename
 import cv2
 import os
@@ -39,7 +39,7 @@ def get_video_list():
 
 @app.route('/files/<string:file>', methods=['GET'])
 def get_video(file):
-    return render_template('video.html')
+    return send_file("./templates/static/video/"+file)
 
 @app.route('/video_feed')
 def video_feed():
