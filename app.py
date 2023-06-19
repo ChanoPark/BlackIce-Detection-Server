@@ -23,9 +23,9 @@ def file_upload():
 
     if f and allowed_file(f.filename):
         f.save('./templates/static/video/' + secure_filename(f.filename))
-        return '파일이 저장되었습니다.'
+        return render_template("success.html")
     else:
-        return '동영상만 업로드 가능합니다.'
+        return render_template("wrong.html")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
